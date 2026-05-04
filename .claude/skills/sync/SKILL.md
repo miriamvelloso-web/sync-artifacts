@@ -1,7 +1,11 @@
 ---
-name: sync
-description: "Sync initiative updates to Jira and artifact SoTs (Google Docs, Slides, etc.) in one pass. Usage: /sync [updates as text, images, PDFs, or any format]"
-user-invocable: true
+name: tlb-sync
+description: '"Sync initiative updates to Jira and artifact SoTs (Google Docs, Slides,
+  etc.) in one pass. Usage: /sync [updates as text, images, PDFs, or any format]"'
+metadata:
+  version: 0.1.0
+  team: product
+  category: product
 ---
 
 # /sync
@@ -16,7 +20,6 @@ Route initiative updates from any input format to all registered destinations:
 One input, all systems updated, all stakeholders notified.
 
 ---
-
 ## Architecture
 
 ```
@@ -66,7 +69,6 @@ One input, all systems updated, all stakeholders notified.
 | **Channels** | Stakeholder comms | Slack, email | When the update is significant enough to notify |
 
 ---
-
 ## Sync Registry
 
 The sync registry is a reference memory file that stores all destinations for a user. It is created during onboarding and grows as the user adds artifacts.
@@ -131,7 +133,6 @@ channels: []
 - `digest` — structured multi-initiative roundup (for batched delivery)
 
 ---
-
 ## Steps
 
 ### 0. Onboarding (first run only)
@@ -198,7 +199,6 @@ Present: "Setup complete. /sync will push updates to:"
 "Add more destinations anytime with `/sync add [URL | slack | email]`."
 
 ---
-
 ### 1. Parse Updates
 
 Read the user's input and extract structured updates per initiative:
@@ -346,7 +346,6 @@ Present a summary table:
 Flag any action items that need follow-up.
 
 ---
-
 ## Commands
 
 - **`/sync [updates]`** — Main flow. Parse updates, route to all destinations.
@@ -431,7 +430,6 @@ The `tlb-slides/SKILL.md` has the full brand design system (color palette, typog
 After generating, save the presentation ID and slide mapping to the sync registry so future `/sync [updates]` can update slides in place.
 
 ---
-
 ## Rules
 
 1. **Inline first, log second.** Always edit canonical fields (tables, summary rows, key metrics) before appending status sections. The canonical record IS the source of truth — a stale field with a correct log is a bug.
@@ -449,7 +447,6 @@ After generating, save the presentation ID and slide mapping to the sync registr
 7. **Registry is the source of mapping truth.** All initiative-to-destination mappings live in the sync registry memory. If the user says "also sync to this new doc," update the registry — don't hardcode.
 
 ---
-
 ## API Patterns
 
 ### Google Docs
