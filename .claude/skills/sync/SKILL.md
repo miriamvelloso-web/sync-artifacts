@@ -350,10 +350,85 @@ Flag any action items that need follow-up.
 ## Commands
 
 - **`/sync [updates]`** — Main flow. Parse updates, route to all destinations.
+- **`/sync artifacts`** — Generate branded slide decks (Experiments, Lightspeed, MPR) from live data. See **`/sync artifacts` Mode** below.
+- **`/sync weekly`** — Draft weekly update in Toon's 3-section format. See `/toon` command.
 - **`/sync add [URL | slack | email]`** — Register a new destination. Accepts artifact URLs or channel types.
 - **`/sync status`** — Show the current sync registry: all destinations, mapped initiatives, routing rules.
 - **`/sync remove [destination name]`** — Remove a destination from the registry.
 - **`/sync test [destination]`** — Send a test message to a specific channel to verify connectivity.
+
+---
+
+## `/sync artifacts` Mode
+
+Generate branded presentation slides directly in Google Slides using the MCP tools. The `.js` reference files in `tlb-slides/references/` define the design specs (colors, positions, fonts, content structure) — don't run them, translate the layout into Google Slides API calls instead.
+
+### Workflow
+
+```
+/sync artifacts
+  ├── Step 1: Select type (Experiment, Lightspeed, or MPR)
+  ├── Step 2: Select scope (which initiative, market, time period)
+  ├── Step 3: Pull fresh data (Jira, Eppo, Drive)
+  ├── Step 4: Create Google Slides directly via MCP tools
+  │     └── Use .js reference files as design specs
+  │         (colors, positions, content structure)
+  └── Step 5: Save last run to registry
+```
+
+### Reference File Map
+
+Each artifact type has a template file (design spec) and filled examples:
+
+| Artifact | Template (design spec) | Filled examples |
+|----------|------------------------|-----------------|
+| **Experiment** | `create-experiment-v2.js` | `create-3-experiments.js` (SR, Flash Sale, Coffee) |
+| **Lightspeed** | `create-lightspeed-v3.js` | `create-lightspeed-coffee-tile.js` |
+| **MPR** | `create-mpr-template.js` | `create-mpr-fuf.js`, `create-mpr-personalization.js` |
+
+All reference files are in `.claude/skills/tlb-slides/references/`.
+
+### Step 1: Select type
+
+Ask: "Which artifact type? Experiment, Lightspeed, or MPR?"
+
+### Step 2: Select scope
+
+Based on type:
+- **Experiment** — which initiative? Which experiment in Eppo?
+- **Lightspeed** — which initiative? Which market/slice?
+- **MPR** — which PM/squad? Which quarter?
+
+### Step 3: Pull fresh data
+
+Fetch live data from registered sources:
+- **Jira**: initiative details, child stories, recent activity
+- **Eppo** (if experiment): metrics, variants, statistical significance
+- **Drive**: related docs, PRDs, strategy docs
+
+### Step 4: Create slides in Google Slides
+
+Create the presentation directly using MCP tools — **do NOT generate .pptx files**.
+
+```
+mcp__google-workspace__create_presentation
+  user_google_email: {PM's email}
+  title: "{Artifact type} — {Initiative name}"
+```
+
+Build slides using `mcp__google-workspace__batch_update_presentation`.
+
+Read the appropriate `.js` reference file for the design spec:
+- Extract colors, positions, font sizes, and content structure
+- Translate `pptxgenjs` calls into Google Slides API requests
+- Use `createShape`, `insertText`, `updateTextStyle`, `updateShapeProperties`
+- Inches to EMU: multiply by 914400
+
+The `tlb-slides/SKILL.md` has the full brand design system (color palette, typography scale, layout rules, logo positions).
+
+### Step 5: Save to registry
+
+After generating, save the presentation ID and slide mapping to the sync registry so future `/sync [updates]` can update slides in place.
 
 ---
 
