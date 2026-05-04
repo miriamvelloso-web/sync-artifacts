@@ -1,0 +1,35 @@
+- [Miriam - Product Ops Growth](user_miriam.md) — Product Ops on Growth team at Talabat, prefers direct style
+- [Talanet Toolkit](reference_talanet_toolkit.md) — Project location, setup state, enabled integrations
+- [P&T OKRs Q2 Deck](reference_okr_deck.md) — Slides deck with all Q2 OKRs, initiative tables, PRD/Eppo links
+- [H1 2026 OKR CBOs](reference_h1_okr_cbos.md) — Company-level bets, objectives, KRs, and CBO owners
+- [Projects](reference_projects.md) — TLB Artefacts (Streamlit :8501) and SR Notification Hub (React :5173) on Desktop
+- [Jira Board - TLBPT](reference_jira_board.md) — Main Jira board, project TLBPT, board 5784, Q2Y26 label filter
+- [Miriam's Jira space](reference_tlbops.md) — TLBOPS board 9830, Miriam's personal OKRs
+- [TLBOPS weekly process](project_tlbops_weekly_process.md) — Weekly playbook: scan board, gather Drive/Slack/Gmail, draft & post Jira comments
+- [Slack MCP gateway](reference_slack_mcp.md) — HTTP gateway at talabatai.dhhmena.com, has search/read/send tools
+- [Use HTTP gateways not tokens](feedback_slack_mcp.md) — Don't debug bot tokens, use Talabat HTTP MCP gateways instead
+- [Segmentum flashsale hitlist](project_segmentum_flashsale.md) — Split QC Sessions CSV by country into Segmentum Excel files; last run 2026-04-21 (133K IDs)
+- [Save recurring work](feedback_save_recurring_work.md) — Always save recurring tasks/topics to memory so Miriam doesn't re-explain
+- [Toon daily Jira refresh](project_toon_daily_refresh.md) — "refresh toon data" → fetch 98 epics via MCP, update activity_cache.json
+- [Opportunity Intake AI](project_opportunity_intake_ai.md) — Automate intake: auto-assign stakeholders, notify Slack, map to OKRs
+- [Intake Bot (Apps Script)](project_intake_bot.md) — Hourly Slack DM bot for intake status changes; clasp-managed, code in Desktop/AI-Projects/intake-bot
+- [Don't write to shared sheets](feedback_dont_write_sheet.md) — Never apply sheet changes until Miriam explicitly says "please start" or "apply"
+- [Use talabat.com email](feedback_google_email.md) — Always use @talabat.com for Google Workspace calls, never @deliveryhero.com
+- [Intake PM mapping](project_intake_pm_mapping.md) — PMs per initiative area: Firas (F&UF), Howaida (Flash/tPro), Rana (VLP/WC), Marta+Sherif (NMR)
+- [Toon feedback - Utsa](feedback_toon_utsa.md) — Fix OKR attribution, avoid echo of last week, add WIP/in-progress section
+- [Market breakdown & no mixing](feedback_weekly_market_breakdown.md) — Break multi-market initiatives by market; never mix data across initiatives
+- [PM mapping per initiative](project_pm_mapping.md) — Firas=F&UF, Howaida=Flash/tPro, Rana=VLP/WC, Sherif=NMR
+- [Weekly updates v2 feedback](feedback_weekly_updates_v2.md) — Only Miriam's tickets, framed by OKRs, pull all Slack channels
+- [Jira refresh: skip static data](feedback_jira_refresh.md) — Don't re-fetch OKRs/KRs on cache refresh, only initiatives and children
+- [MD email enrichment](project_md_email_enrichment.md) — Pending: enrich MD email brief with PRD context + use Eppo cache for named metrics
+- [MD metrics style](feedback_md_metrics_style.md) — Name actual metrics, include guardrails, write like a data analyst
+- [Sync Registry — Adrian](sync_registry_adrian.md) — /sync config for Adrian Alvarez (HOMESQUAD): 3 epics, strategy doc mapped
+- [Experiment slide WIP](project_experiment_slide_wip.md) — Template workflow, 2 slides filled (SR + Flash Sale KW), Eppo MCP added pending restart
+- [Eppo MCP gateway](reference_eppo_mcp.md) — HTTP gateway at talabatai.dhhmena.com/mcp/gateway/eppo/mcp, added to local config
+- [Business Case Helper](project_business_case_helper.md) — /business-case skill with impact calculators, generates Google Doc from template
+- [BQ access for business case](project_bq_access_business_case.md) — Full BQ access granted (Data Viewer on fulfillment-dwh-production + Job User)
+- [NRM Gamification](project_nrm_gamification.md) — Spin the Wheel AB test in UAE/JO/BH, Miriam leading POPs/pilot/GTM
+- [Google Slides direct](feedback_slides_google_direct.md) — Don't generate .pptx, create slides directly via Google Slides API
+- [Toon weekly format](feedback_toon_format.md) — Squad + PM header, OKR/KR table with status, 3-section branded HTML cards, CEO scan test
+- [MPR deck structure](feedback_mpr_template.md) — Agenda → OKR status → deep dive per initiative (experiment slide or Jira update) → register new artifacts
+- [Experiment results narrative](feedback_experiment_results_narrative.md) — Use narrative bullets with bold metrics, not raw tables or dense paragraphs
