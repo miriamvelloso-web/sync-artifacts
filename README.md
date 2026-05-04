@@ -311,7 +311,7 @@ All reference files are in `.claude/skills/tlb-slides/references/`.
 1. **Select type** — Experiment, Lightspeed, or MPR
 2. **Select scope** — which initiative/experiment/market/quarter
 3. **Pull fresh data** — Jira (initiative details, child stories), Eppo (experiment metrics, variants, significance), Drive (related docs, PRDs)
-4. **Create slides** — create presentation via `mcp__google-workspace__create_presentation`, build slides via `mcp__google-workspace__batch_update_presentation`. Read the `.js` reference file for colors, positions, fonts, and content structure. Translate `pptxgenjs` calls into Google Slides API requests. Use `createShape`, `insertText`, `updateTextStyle`, `updateShapeProperties`. Inches to EMU: multiply by 914400.
+4. **Create slides** — create presentation via `mcp__google-workspace__create_presentation`, build slides via `mcp__google-workspace__batch_update_presentation`. Read the `.js` reference file for colors, positions, fonts, and content structure. Translate `pptxgenjs` calls into Google Slides API requests. Use `createShape`, `insertText`, `updateTextStyle`, `updateShapeProperties`. Inches to EMU: multiply by 914400. For experiment results content, use the **exec summary writing guide** below.
 5. **Save to registry** — store presentation ID and slide mapping so future `/sync [updates]` can update slides in place
 
 ### MCP API Patterns for Slides
@@ -346,6 +346,19 @@ mcp__google-workspace__batch_update_presentation
       "replaceText": "Actual value", "pageObjectIds": ["slideId"]}}
   ]
 ```
+
+### Writing experiment results for slides
+
+When generating experiment result content, write as a data analyst summarizing for non-technical stakeholders (VPs, GMs, PMs):
+
+- **1 opening sentence** stating what was tested and the headline result
+- **3-5 bullet points** covering: primary metric result, guardrail status, notable secondary findings, recommended action
+- Bold the single most important number
+- **Under 150 words total**
+
+**Strict rules:** No jargon (MDE, p-value, confidence interval, CUPED, variance, effect size, sample size). Say "reliable" instead of "statistically significant". Say "flat" or "directionally positive" instead of "non-significant". Explain mechanisms: "driven by", "offset by". Every bullet must reference actual numbers. Confirm guardrails are safe or flag if hurt. If a metric should decrease and it did, that's positive.
+
+Adapted from [`talabat-dhme/data-apps/exp-analysis-bot/llm.py`](https://github.com/talabat-dhme/data-apps/blob/main/exp-analysis-bot/llm.py).
 
 ---
 

@@ -405,6 +405,30 @@ Fetch live data from registered sources:
 - **Eppo** (if experiment): metrics, variants, statistical significance
 - **Drive**: related docs, PRDs, strategy docs
 
+### Writing Experiment Results (for slides)
+
+When generating experiment result content for slides, write as a data analyst summarizing for non-technical stakeholders (VPs, GMs, PMs). Use the **exec summary format**:
+
+**Structure:**
+- 1 short opening sentence stating what was tested and the headline result
+- 3-5 bullet points covering: primary metric result, guardrail status, any notable secondary findings, and recommended action
+- Bold (`**`) the single most important number
+- Keep the whole summary **under 150 words**
+
+**Writing rules — strict:**
+- No technical jargon whatsoever. Forbidden words: MDE, p-value, confidence interval, statistical significance, CUPED, variance, regression, null hypothesis, power, effect size, sample size
+- Instead of "statistically significant", say the result is "reliable" or "a clear signal"
+- Instead of "MDE", say "the smallest change we could reliably detect"
+- Instead of "non-significant", say "flat" or "directionally positive/negative"
+- Explain results in plain business language: what happened, why it matters, what to do next
+- Always state the direction: "+X% (reliable)" or "+X% (directional, not yet conclusive)"
+- For guardrail metrics: explicitly confirm they are safe, or flag if hurt
+- If a metric should decrease (e.g. refund_rate) and it decreased, that is a **positive** result — interpret correctly
+- Explain mechanisms where visible: "driven by", "offset by", "suggesting that"
+- Every bullet must reference actual numbers from the data — no generic filler
+
+**Source:** Adapted from [`talabat-dhme/data-apps/exp-analysis-bot/llm.py`](https://github.com/talabat-dhme/data-apps/blob/main/exp-analysis-bot/llm.py) (exec summary prompt).
+
 ### Step 4: Create slides in Google Slides
 
 Create the presentation directly using MCP tools — **do NOT generate .pptx files**.
