@@ -13,7 +13,7 @@ A Claude Code skill system for Product Managers at Talabat. Syncs initiative upd
 │   │   ├── SKILL.md             # /sync — universal PM initiative router
 │   │   └── jira-skill-docs.md   # /jira — Jira board management reference
 │   ├── tlb-sync/
-│   │   └── SKILL.md             # /tlb-sync — extended sync with slides, weekly, experiment modes
+│   │   └── SKILL.md             # /tlb-sync — extended sync (artifacts, weekly, channels)
 │   └── tlb-slides/
 │       ├── SKILL.md             # Talabat slide design system (brand guide)
 │       ├── assets/
@@ -53,10 +53,8 @@ One input, all systems updated, all stakeholders notified.
 | Command | What it does |
 |---------|-------------|
 | `/sync [updates]` | Parse updates from any input (text, images, PDFs, Slack messages), route to all registered destinations |
-| `/sync artifacts` | Generate branded Google Slides decks from live Jira/Eppo data (see below) |
-| `/sync slides` | Generate an OKR-based Jira deck with one slide per initiative |
+| `/sync artifacts` | Generate or update branded Google Slides decks — shows a dynamic menu (see below) |
 | `/sync weekly` | Draft weekly update in Toon's 3-section format (uses `/toon` command) |
-| `/sync experiment` | Draft an experiment launch or results email for an initiative |
 | `/sync add [URL \| slack \| email]` | Register a new destination |
 | `/sync status` | Show the current sync registry |
 | `/sync remove [name]` | Remove a destination |
@@ -67,39 +65,39 @@ One input, all systems updated, all stakeholders notified.
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                     INPUT LAYER                         │
-│  Text, images, screenshots, PDFs, Slack messages,       │
-│  meeting notes, pasted content — any format             │
-└────────────────────────┬────────────────────────────────┘
-                         │
-                    ┌────▼────┐
-                    │  PARSE  │  Extract structured updates
-                    │         │  per initiative
-                    └────┬────┘
-                         │
-              ┌──────────▼──────────┐
-              │   ROUTE & MATCH     │  Map updates to destinations
-              │                     │  using the sync registry
-              └───┬──────┬─────┬───┘
-                  │      │     │
-      ┌───────────▼┐  ┌──▼──────────┐  ┌──▼───────────────┐
-      │   JIRA      │  │  ARTIFACTS  │  │   CHANNELS       │
-      │             │  │             │  │                   │
-      │ • Comments  │  │ Google Doc  │  │ Slack             │
-      │ • Transitions│ │ • Inline    │  │ • Channel posts   │
-      │ • New tickets│ │ • Status log│  │ • Thread updates  │
-      │ • Field edits│ │             │  │ • DMs             │
-      │             │  │ Google Slides│ │                   │
-      │             │  │ • New slides│  │ Email             │
-      │             │  │ • Update    │  │ • Stakeholder     │
-      │             │  │             │  │   notifications   │
-      │             │  │ (future...) │  │ • Digest summaries│
-      └──────┬──────┘  └──────┬──────┘  └────────┬─────────┘
-             │                │                   │
-           ┌─▼────────────────▼───────────────────▼──┐
-           │           VERIFY & REPORT                │
-           └──────────────────────────────────────────┘
+                    ┌─────────────────────────────────────┐
+                    │            /sync [input]             │
+                    │  Text, images, PDFs, Slack, notes    │
+                    └────────────────┬────────────────────┘
+                                    │
+                    ┌───────────────▼───────────────────┐
+                    │         PARSE & ROUTE              │
+                    │  Extract updates per initiative    │
+                    │  Match to destinations via registry│
+                    └───┬───────────┬───────────┬───────┘
+                        │           │           │
+        ┌───────────────▼┐   ┌─────▼─────┐   ┌─▼───────────────┐
+        │      JIRA       │   │ ARTIFACTS │   │    CHANNELS      │
+        │                 │   │           │   │                  │
+        │ • Comments      │   │ /sync     │   │ Slack            │
+        │ • Transitions   │   │ artifacts │   │ • Posts / threads│
+        │ • New tickets   │   │ ┌─────────┤   │ • DMs            │
+        │ • Field edits   │   │ │Experiment│   │                  │
+        │                 │   │ │Lightspeed│   │ Email            │
+        │                 │   │ │MPR       │   │ • Notifications  │
+        │                 │   │ │OKR Slides│   │ • Digests        │
+        │                 │   │ │Registered│   │                  │
+        │                 │   │ │+ New deck│   │ /sync weekly     │
+        │                 │   │ └─────────┤   │ (Toon format)    │
+        │                 │   │           │   │                  │
+        │                 │   │ Google Doc │   │                  │
+        │                 │   │ • Inline   │   │                  │
+        │                 │   │ • Status   │   │                  │
+        └────────┬────────┘   └─────┬─────┘   └────────┬─────────┘
+                 │                  │                   │
+               ┌─▼──────────────────▼───────────────────▼──┐
+               │            VERIFY & REPORT                 │
+               └────────────────────────────────────────────┘
 ```
 
 **Key design principle:** The parse layer, artifact layer, and channel layer are independent. Adding a new destination type means registering it in the sync registry — it does not change how input is parsed or how other destinations are updated.
@@ -114,19 +112,31 @@ One input, all systems updated, all stakeholders notified.
 
 ## `/sync artifacts` — Branded Slide Generation
 
-**Google Slides only.** Generates presentation decks directly via Google Slides API using the `tlb-slides` brand design system.
+**Google Slides only.** All artifact types live under this single command. When invoked, it shows a dynamic menu — the PM picks a type, then an initiative, and gets a deck created or updated.
+
+### Artifact Types
+
+| Type | What it produces | When to use |
+|------|-----------------|-------------|
+| **Experiment** | Experiment review deck (hypothesis, setup, results, decision) | Before/after running an experiment |
+| **Lightspeed** | Eng/product sync deck (status, metrics, shipped items, blockers) | Weekly or bi-weekly eng sync |
+| **MPR** | Monthly Product Review deck (duplicated from master template) | Monthly leadership review |
+| **OKR Slides** | One slide per initiative grouped by OKR/KR hierarchy | Quarterly planning or status updates |
+| **Registered decks** | Any Google Slides the PM previously added | Reuse custom decks across sessions |
+| **+ New deck** | Register a brand new Google Slides presentation | One-time setup, persists forever |
 
 ### Dynamic Menu
 
-When invoked, `/sync artifacts` shows a **dynamic selection menu** built from:
+When invoked, `/sync artifacts` shows a **selection menu** built from:
 
-1. **Experiment** — experiment review deck (always available)
-2. **Lightspeed** — eng/product sync deck (always available)
-3. **MPR** — monthly product review deck (always available)
-4. **Previously registered decks** — any Google Slides decks the PM registered in past sessions
-5. **+ New deck** — register a brand new Google Slides presentation on the spot
+1. **Experiment** (always available)
+2. **Lightspeed** (always available)
+3. **MPR** (always available)
+4. **OKR Slides** (always available)
+5. **All previously registered decks** from the PM's sync registry
+6. **+ New deck** — register a new presentation on the spot
 
-Once a PM registers a new deck via option 5, it persists permanently in their sync registry and appears in the menu on every future run.
+Once a PM registers a new deck via option 6, it persists permanently in their sync registry and appears in the menu on every future run.
 
 ### Create-or-Update Logic
 
