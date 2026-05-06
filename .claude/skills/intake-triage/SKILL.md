@@ -47,7 +47,7 @@ TABS: ["1/ Choice", "2/Experience", "3/Value", "4/Ecosystem & Growth", "5/Founda
 "2/Experience":          CBO: Khee Lim,                  Tribe: Rose Marsh
 "3/Value":               CBO: Alvaro Martinez Espinosa,   Tribe: Rose Marsh
 "4/Ecosystem & Growth":  CBO: Hussein Daher,             Tribe: Emily Thomas
-"5/Foundations":         CBO: Sofia Simoes de Almeida,    Tribe: Sofia Simoes de Almeida
+"5/Foundations":         CBO: (none),                     Tribe: Bipin Kumar
 "6/No Related Bet":      CBO: (none),                    Tribe: (none)
 ```
 

@@ -13,6 +13,8 @@
 - [Toon daily Jira refresh](project_toon_daily_refresh.md) — "refresh toon data" → fetch 98 epics via MCP, update activity_cache.json
 - [Opportunity Intake AI](project_opportunity_intake_ai.md) — Automate intake: auto-assign stakeholders, notify Slack, map to OKRs
 - [Intake Bot (Apps Script)](project_intake_bot.md) — Hourly Slack DM bot for intake status changes; clasp-managed, code in Desktop/AI-Projects/intake-bot
+- [Intake Slack IDs](reference_intake_slack_ids.md) — Slack user IDs for all intake submitters, CBOs, and Bet Leads
+- [Intake notifications format](project_intake_notifications.md) — Approved message format: status headers + individual threads, only tag submitters
 - [Don't write to shared sheets](feedback_dont_write_sheet.md) — Never apply sheet changes until Miriam explicitly says "please start" or "apply"
 - [Use talabat.com email](feedback_google_email.md) — Always use @talabat.com for Google Workspace calls, never @deliveryhero.com
 - [Intake PM mapping](project_intake_pm_mapping.md) — PMs per initiative area: Firas (F&UF), Howaida (Flash/tPro), Rana (VLP/WC), Marta+Sherif (NMR)
@@ -33,3 +35,7 @@
 - [Toon weekly format](feedback_toon_format.md) — Squad + PM header, OKR/KR table with status, 3-section branded HTML cards, CEO scan test
 - [MPR deck structure](feedback_mpr_template.md) — Agenda → OKR status → deep dive per initiative (experiment slide or Jira update) → register new artifacts
 - [Experiment results narrative](feedback_experiment_results_narrative.md) — Use narrative bullets with bold metrics, not raw tables or dense paragraphs
+- [Always use /tlb-slides](feedback_always_tlb_slides.md) — Never create slides without the Talabat brand design system skill
+- [MPR workflow](feedback_mpr_workflow.md) — Duplicate master template, always use onboarded PM, no prompts
+- [Sync artifacts = Slides only](feedback_sync_add_artifacts.md) — /sync artifacts is Google Slides only; dynamic menu with fixed types + registered decks + "New deck"
+- [Sync artifacts folders & create/update](feedback_sync_artifacts_folder_structure.md) — Drive folders by quarter/PM/bet, show live initiatives, create if new or update if exists

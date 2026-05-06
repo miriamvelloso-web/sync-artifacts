@@ -78,9 +78,30 @@ The sync registry is a reference memory file that stores all destinations for a 
 ```yaml
 # Populated during onboarding — all sections start empty
 
+pm:
+  name: ""                       # PM display name (e.g. "Flossie Reynolds")
+  account_id: ""                 # Jira account ID for assignee queries
+  email: ""                      # used for Jira lookups AND Google Workspace API calls
+
 jira:
-  project: ""                    # set during onboarding (e.g. "HOMESQUAD")
-  initiatives: {}                # initiative name → epic key, mapped by user
+  project: ""                    # set during onboarding (e.g. "TLBVAL")
+  issue_levels: []               # trackable issue types detected from project hierarchy (e.g. ["Initiative", "Epic"])
+  initiatives: {}                # initiative name → issue key, auto-discovered by assignee
+
+okr_hierarchy:                   # auto-discovered by walking UP parent chain from initiatives
+  # NOTE: parent chain often crosses project boundaries (e.g., initiatives in TLBVAL → KRs in TLBPT)
+  # Example:
+  # - objective:
+  #     key: "TLBPT-256"
+  #     name: "O5. Drive sustainable topline growth through relevant, earned value"
+  #   key_results:
+  #     - key: "TLBPT-266"
+  #       name: "O5.KR2. Increase incentivised item orders/user by 2% through Best Sellers"
+  #       initiatives:
+  #         - key: "TLBVAL-16"
+  #           name: "Replace MFO with Best Sellers Swimlane on HS (UAE)"
+  #         - key: "TLBVAL-18"
+  #           name: "Implement TOD relevancy"
 
 artifacts: []
 # Example after user registers a Google Doc:
@@ -141,41 +162,117 @@ Check if a sync registry reference memory exists (search MEMORY.md for a memory 
 
 If no registry exists, run the onboarding flow:
 
-#### a) Identify Jira project
+#### a) Prerequisites check
 
-If Jira is already configured (check `work/setup-log.yaml`), confirm: "I see your Jira project is [PROJECT]. Is that the one you want to sync updates to?"
+Before asking the PM anything, silently verify that required integrations are available:
 
-If not configured, ask for the Jira project key.
+1. **Jira MCP** — check that `mcp__atlassian__*` tools are callable. If not, stop and guide: "I need Jira access to continue. Add the Atlassian MCP server to your Claude config."
+2. **Google Workspace MCP** — check that `mcp__google-workspace__*` tools are callable. If not, stop and guide: "I need Google Workspace access to read/write your docs. Add the Google Workspace MCP server to your Claude config."
+3. **Slack MCP** (optional) — check if `mcp__slack__*` or `mcp__Slack__*` tools exist. Note availability for step (f).
 
-#### b) Register artifacts
+Only proceed once Jira + Google Workspace are confirmed working.
 
-Ask: "What documents do you use as sources of truth for your initiatives? These can be Google Docs, Google Slides, or other documents. Paste the URL(s)."
+#### b) Identify PM
+
+Ask: "What's your name?" (or infer from context if already known).
+
+1. Look up the PM in Jira using `lookupJiraAccountId` with their name
+2. If multiple matches, show them and ask which one
+3. Store: `name`, `account_id`, `email` (from Jira profile)
+4. This email is also used for all Google Workspace API calls (`user_google_email`)
+
+#### c) Identify Jira project
+
+Ask for the Jira project key (e.g., "TLBVAL", "HOMESQUAD").
+
+Verify it exists using `getVisibleJiraProjects` with a search.
+
+#### d) Discover initiatives and OKR hierarchy
+
+**Do NOT hardcode `issuetype = Epic`.** Projects use different hierarchy levels, and the OKR hierarchy often spans across projects.
+
+**Step 1 — Find the PM's initiatives:**
+
+1. Read the project's available issue types via `getJiraProjectIssueTypesMetadata`
+2. Identify all trackable levels by `hierarchyLevel` — typically:
+   - Initiative (level 2) — the most common PM tracking unit
+   - Epic (level 1) — used in simpler projects
+3. Query **both Initiative and Epic** levels assigned to the PM:
+   ```
+   project = {KEY} AND issuetype in (Initiative, Epic) AND assignee = "{account_id}" ORDER BY created DESC
+   ```
+4. **If matches found** — present the list: "These are your initiatives. Correct?"
+5. **If no matches found** — show ALL initiatives/epics in the project with a warning: "None of these are assigned to you in Jira. Which ones are yours?" Let PM pick by number.
+
+**Step 2 — Walk UP the parent chain to discover OKR context:**
+
+For each confirmed initiative, read the `parent` field and keep walking up until there is no parent. This builds the full hierarchy tree. **The parent chain often crosses project boundaries** (e.g., initiatives in TLBVAL → KRs and Objectives in TLBPT).
+
+```
+For each initiative:
+  1. Read issue with parent field
+  2. If parent exists → read parent, note its type (Key Result, Objective, Commitment, Big Bet)
+  3. Keep walking up until no parent
+  4. Store the full chain
+```
+
+**Step 3 — Deduplicate and present as a tree:**
+
+Group initiatives by their KR and Objective. Present the full hierarchy:
+
+```
+Objective: TLBPT-256 — O5. Drive sustainable topline growth through relevant, earned value
+  └── Key Result: TLBPT-266 — O5.KR2. Increase incentivised item orders/user by 2% through Best Sellers
+        ├── TLBVAL-16 — Replace MFO with Best Sellers Swimlane on HS (UAE)
+        ├── TLBVAL-18 — Implement TOD relevancy
+        ├── TLBVAL-19 — Improve UX of item swimlane and best seller collection
+        └── ... (more initiatives)
+```
+
+Ask: "Does this OKR tree look right?"
+
+Store the full hierarchy in the registry under `okr_hierarchy`.
+
+#### e) Register artifacts
+
+Ask: "What documents do you use as sources of truth for your initiatives? These can be Google Docs, Google Slides, or other documents. Paste the URL(s). You can also skip and add them later with `/sync add [URL]`."
 
 Accept one or more URLs. For each:
 1. Detect the artifact type from the URL (Google Doc, Google Slides, etc.)
-2. Verify read+write access. If scope is insufficient, provide the gcloud command with the required scopes.
+2. Verify read+write access using `inspect_doc_structure` (Docs) or `get_presentation` (Slides). If access fails, report the error clearly.
 3. Discover the artifact's structure:
    - **Google Doc:** list all tabs (nested) with IDs and titles
    - **Google Slides:** list all slides with IDs, titles, and content summaries
-4. Present the structure to the user
+4. Present the structure as a visual tree to the PM
 
-#### c) Map initiatives
+#### f) Auto-match artifact sections to initiatives
 
-For each artifact, ask: "Which sections/tabs/slides correspond to your initiatives? For each one, tell me the Jira epic key too."
+**Do NOT ask the PM to manually map every tab/slide.** Auto-match first, then confirm.
 
-Accept natural language mappings:
-- "SR MVP rollout tab → HOMESQUAD-967"
-- "Slide 3 (Coffee tile) → HOMESQUAD-992"
+1. Compare each tab title (or slide title) against the initiative names from step (d) using fuzzy string matching (substring, keyword overlap, common abbreviations)
+2. Present a proposed mapping table:
+   ```
+   | Doc Tab / Slide         | Matched Initiative                    | Key        | Confidence |
+   |-------------------------|---------------------------------------|------------|------------|
+   | BS swimlane (UAE)       | Replace MFO with Best Sellers (UAE)   | TLBVAL-16  | strong     |
+   | TOD on BS swimlane      | Implement TOD relevancy               | TLBVAL-18  | strong     |
+   | Savings amount tag      | Show savings tag in item details      | TLBVAL-50  | strong     |
+   | Commercial GTM          | —                                     | —          | no match   |
+   ```
+3. Ask: "Does this mapping look right? You can correct any row or add missing ones."
+4. Accept corrections in natural language: "Commercial GTM is not an initiative, skip it" or "Breakfast Swimlane → TLBVAL-44"
+5. Tabs with no match are stored as unmapped — they won't receive updates but stay in the registry for future mapping.
 
-#### d) Register channels (optional)
+#### g) Register channels (optional)
 
 Ask: "Do you want /sync to also notify stakeholders via Slack or email when updates are pushed? You can set this up now or later with `/sync add slack` or `/sync add email`."
 
+If Slack MCP is not available (from step a), note: "Slack integration isn't connected yet — you can add it later."
+
 If yes for **Slack:**
-1. Check if Slack MCP tools are available
-2. Ask: "Which Slack channel(s) should receive updates? And for each, should it get all updates, only specific initiatives, or only significant ones (launches, blockers)?"
-3. Accept routing rules in natural language: "#personalization-updates gets everything, #home-squad only Screen Ranker and Coffee tile, DM Ahmed only for launches"
-4. Ask about format preference per channel: detailed, summary, or executive
+1. Ask: "Which Slack channel(s) should receive updates? And for each, should it get all updates, only specific initiatives, or only significant ones (launches, blockers)?"
+2. Accept routing rules in natural language: "#personalization-updates gets everything, #home-squad only Screen Ranker and Coffee tile, DM Ahmed only for launches"
+3. Ask about format preference per channel: detailed, summary, or executive
 
 If yes for **email:**
 1. Ask: "Who should receive email notifications? And for each, what triggers an email?"
@@ -184,15 +281,15 @@ If yes for **email:**
 
 If no: skip, the registry stores an empty channels list. Can be added later.
 
-#### e) Save the sync registry
+#### h) Save the sync registry
 
-Write a reference memory file containing the full registry (Jira config + all artifacts + all channels with their routing rules). Add to MEMORY.md index.
+Write a reference memory file containing the full registry (PM identity + Jira config + all artifacts with mappings + all channels with routing rules). Add to MEMORY.md index.
 
-#### f) Confirm
+#### i) Confirm
 
 Present: "Setup complete. /sync will push updates to:"
 - Jira project [PROJECT] — [N] initiatives mapped
-- [Artifact name] ([type]) — [N] sections mapped
+- [Artifact name] ([type]) — [N] sections mapped ([M] auto-matched, [K] unmapped)
 - [Channel name] ([type]) — [routing summary]
 - ...
 
@@ -366,13 +463,15 @@ Generate branded presentation slides directly in Google Slides using the MCP too
 
 ```
 /sync artifacts
-  ├── Step 1: Select type (Experiment, Lightspeed, or MPR)
-  ├── Step 2: Select scope (which initiative, market, time period)
-  ├── Step 3: Pull fresh data (Jira, Eppo, Drive)
-  ├── Step 4: Create Google Slides directly via MCP tools
+  ├── Step 0: Check data source availability (Eppo, BQ)
+  ├── Step 1: Select type (menu with descriptions)
+  ├── Step 2: Select scope (smart-suggest from Jira status)
+  ├── Step 3: Pull fresh data (Jira, Eppo if available, Drive)
+  ├── Step 4: Ensure Drive folder exists (auto-create if not)
+  ├── Step 5: Create or update Google Slides via MCP tools
   │     └── Use .js reference files as design specs
   │         (colors, positions, content structure)
-  └── Step 5: Save last run to registry
+  └── Step 6: Save to registry
 ```
 
 ### Reference File Map
@@ -387,32 +486,134 @@ Each artifact type has a template file (design spec) and filled examples:
 
 All reference files are in `.claude/skills/tlb-slides/references/`.
 
+### Step 0: Check data source availability
+
+Before showing the menu, silently check which data sources are available. Use this concrete detection strategy:
+
+1. **Eppo MCP** — look for any tool whose name starts with `mcp__eppo__`. Three possible states:
+   - **Tools exist** (e.g., `mcp__eppo__get_experiment`) → `eppo_available: true`
+   - **Only `mcp__eppo__authenticate` exists** → Eppo is configured but needs OAuth. Run the authenticate tool to start the flow, then re-check.
+   - **No `mcp__eppo__*` tools at all** → Eppo is either not configured or the gateway is unreachable. Store `eppo_available: false`.
+2. **BigQuery MCP** — same pattern: look for `mcp__bigquery__*` tools. If only `mcp__bigquery__authenticate` exists, run it.
+
+These checks determine what data can be pulled in Step 3. If a source is unavailable, the skill still works — it just uses Jira + manual input instead. Do NOT prompt the PM about these checks unless they directly affect the selected artifact type (e.g., Eppo for Experiment decks).
+
 ### Step 1: Select type
 
-Ask: "Which artifact type? Experiment, Lightspeed, or MPR?"
+Present the menu **with descriptions** so any PM understands what each type is:
 
-### Step 2: Select scope
+```
+What would you like to create?
+
+1. Experiment — slide deck summarizing an A/B test: hypothesis, setup, results, recommendation
+2. Lightspeed — eng/product sync deck: initiative status, blockers, upcoming milestones
+3. MPR — Monthly Product Review: OKR progress, initiative deep dives for leadership
+4. [Previously registered decks, if any, listed by name]
+5. + New deck — create or register a new Google Slides presentation
+```
+
+If the PM has previously generated decks (stored in registry under `generated_decks`), show those between the fixed types and "+ New deck".
+
+### Step 2: Select scope (smart-suggest)
+
+**Do NOT just show a flat list.** Use Jira status to smart-suggest the most relevant initiative.
 
 Based on type:
-- **Experiment** — which initiative? Which experiment in Eppo?
-- **Lightspeed** — which initiative? Which market/slice?
-- **MPR** — which PM/squad? Which quarter?
+- **Experiment** — scan the PM's initiatives for status = "Experiment" or issues with experiment-related labels. If found, auto-suggest: "I see TLBVAL-16 (Replace MFO with Best Sellers) is in Experiment status. Is this the one?" Show the full list as fallback.
+- **Lightspeed** — suggest initiatives with status = "In Progress". Ask which market/slice if the initiative spans multiple.
+- **MPR** — auto-scope to the PM's full OKR tree (from `okr_hierarchy` in registry). Ask which quarter if ambiguous.
 
 ### Step 3: Pull fresh data
 
 Fetch live data from registered sources:
-- **Jira**: initiative details, child stories, recent activity
-- **Eppo** (if experiment): metrics, variants, statistical significance
-- **Drive**: related docs, PRDs, strategy docs
+
+- **Jira** (always): initiative details, child stories, recent activity, status. **Also parse the description for embedded links** — extract:
+  - Eppo experiment URLs (pattern: `eppo.cloud/experiments/{id}`) → store the experiment ID for Eppo pull
+  - PRD / Google Doc URLs → store for footer links on the slide
+  - Working sheet URLs → store for footer links
+- **Eppo** (if `eppo_available` AND type = Experiment): use the experiment ID extracted from Jira (or ask the PM if not found). Pull data in this order:
+  1. `find_experiment(query)` — match by name or key to get experiment_id
+  2. `get_experiment_details(experiment_id)` — metadata, variants, hypothesis, dates, owner
+  3. `get_experiment_results(experiment_id)` — per-variant CUPED-adjusted metrics with p-values
+  4. `get_metric_details(metric_id)` **for every metric** in the results — gets human-readable name, description, and `desired_change` direction. Call these in parallel (batch all metric_id calls at once). **Never skip this step** — metric_ids alone are meaningless; you need names to write the summary and to classify guardrails.
+  If Eppo is NOT available:
+  - If `mcp__eppo__authenticate` exists → offer: "Eppo isn't connected yet. I can start the authentication now — it takes 30 seconds. Want to connect?"
+  - If no Eppo tools at all → warn: "Eppo MCP isn't configured. I'll build the slide from Jira data. You can paste experiment results manually, or run `claude mcp add --transport http eppo 'https://talabatai.dhhmena.com/mcp/gateway/eppo/mcp'` to add it."
+  - Either way, proceed with Jira data and offer manual paste as fallback.
+- **Drive**: related docs, PRDs, strategy docs from registered artifacts
+
+### Step 4: Ensure Drive folder exists
+
+Before creating the presentation, ensure the target folder exists. The folder structure is:
+
+```
+Q{quarter}Y{year} PM: {PM Name} — {Top-level name}/
+├── Experiments/
+├── MPR/
+├── Lightspeed/
+└── (other registered deck types)/
+```
+
+1. Search Drive for the folder name using `search_drive_files`
+2. **If found** — use it
+3. **If NOT found** — auto-create the folder hierarchy using `create_drive_folder`:
+   - Create the parent folder: `Q{quarter}Y{year} PM: {PM Name} — {Top-level name}`
+   - Create the type subfolder inside it (e.g., `Experiments/`)
+4. Store the folder ID in the registry for future runs
+
+Derive `{Top-level name}` from the highest node in the PM's OKR hierarchy — this could be a Big Bet, Commitment, or Objective depending on the project's hierarchy depth. Use whatever is at the root. **Clean up the name:** strip `[Q2Y26]` prefixes and truncate to ~50 chars if too long (e.g., "O5. Drive sustainable topline growth..." → "O5. Drive sustainable topline growth").
+
+Derive `{quarter}` and `{year}` from the current date.
 
 ### Writing Experiment Results (for slides)
 
-When generating experiment result content for slides, write as a data analyst summarizing for non-technical stakeholders (VPs, GMs, PMs). Use the **exec summary format**:
+Before writing any experiment content, **prepare the data** — do NOT skip this step and free-write from raw Eppo output.
 
-**Structure:**
+#### Step A: Classify metrics
+
+For every metric returned by `get_experiment_results`, call `get_metric_details(metric_id)` to get:
+- **name** — human-readable label (use this everywhere, never show raw metric_ids)
+- **description** — the SQL definition and what it measures
+- **desired_change** — `"increase"` or `"decrease"` — critical for guardrail interpretation
+
+Then bucket each metric:
+- **Primary** — the metric flagged as primary in Eppo (usually 1, sometimes 2)
+- **Guardrail** — metrics where the result direction opposes `desired_change` AND the result is reliable (p < 0.05). These are guardrail hits. Also flag any metric whose name contains "GMV", "orders", "revenue" at a level above the experiment scope (e.g., homepage-level when testing a single swimlane)
+- **Secondary** — everything else that is statistically reliable
+
+#### Step B: Build structured input
+
+Assemble a structured summary before writing. Format:
+
+```
+Experiment: {name}
+Variants: Control ({n} users) vs Treatment ({n} users)
+Market: {market}
+
+PRIMARY METRICS:
+- {metric_name}: {+/-X.XX%} (p={value}, desired={direction}) → {PASS/FAIL}
+
+GUARDRAIL METRICS:
+- {metric_name}: {+/-X.XX%} (p={value}, desired={direction}) → GUARDRAIL HIT / SAFE
+
+SECONDARY METRICS:
+- {metric_name}: {+/-X.XX%} (p={value})
+
+Hypothesis: {from Jira or Eppo, or "Not documented"}
+```
+
+Use CUPED-adjusted values (`metric_value_cuped`, `cuped.percent_change`) when available — these are more robust. Fall back to raw values only if CUPED fields are missing.
+
+#### Step C: Write exec summary
+
+Now write the summary for the `summary_box` slide element. Adopt this persona:
+
+> You are a data analyst at Talabat writing a concise executive summary of an experiment for senior leadership (non-technical audience: VPs, GMs, PMs).
+
+**Structure — exact:**
 - 1 short opening sentence stating what was tested and the headline result
 - 3-5 bullet points covering: primary metric result, guardrail status, any notable secondary findings, and recommended action
-- Bold (`**`) the single most important number
+- **Bold** the single most important number (use `**` in the draft, render as bold in Slides)
 - Keep the whole summary **under 150 words**
 
 **Writing rules — strict:**
@@ -427,16 +628,38 @@ When generating experiment result content for slides, write as a data analyst su
 - Explain mechanisms where visible: "driven by", "offset by", "suggesting that"
 - Every bullet must reference actual numbers from the data — no generic filler
 
+#### Step D: Write results_box
+
+The `results_box` uses a tighter bullet format:
+```
+●  Primary metric: {Metric Name}  {+/-X.X%}  (reliable)
+●  Secondary: {Metric Name}  {+/-X.X%}  (reliable)
+●  Guardrail: {Metric Name}  {+/-X.X%}  (negative)
+●  Guardrail: {Metric Name}  {+/-X.X%}  (negative)
+●  Side effect: {Metric Name}  {+/-X.X%}  (negative)
+```
+
+Use the classified buckets from Step A. Max 6 lines — pick the most important metrics. Use human-readable names from `get_metric_details`, never raw metric_ids.
+
 **Source:** Adapted from [`talabat-dhme/data-apps/exp-analysis-bot/llm.py`](https://github.com/talabat-dhme/data-apps/blob/main/exp-analysis-bot/llm.py) (exec summary prompt).
 
-### Step 4: Create slides in Google Slides
+### Step 5: Create or update slides in Google Slides
+
+**Check if a deck already exists** for this initiative + type in the registry (`generated_decks`):
+- **If YES** — update the existing deck in place (no duplicates). Find the presentation by stored ID, update slides with fresh data.
+- **If NO** — create a new presentation in the Drive folder from Step 4.
 
 Create the presentation directly using MCP tools — **do NOT generate .pptx files**.
 
 ```
 mcp__google-workspace__create_presentation
-  user_google_email: {PM's email}
+  user_google_email: {PM's email from registry}
   title: "{Artifact type} — {Initiative name}"
+```
+
+**Immediately after creating**, delete the default empty text boxes (`i0`, `i1`) that every new Google Slides presentation creates:
+```
+batch_update_presentation: [{"deleteObject": {"objectId": "i0"}}, {"deleteObject": {"objectId": "i1"}}]
 ```
 
 Build slides using `mcp__google-workspace__batch_update_presentation`.
@@ -446,12 +669,34 @@ Read the appropriate `.js` reference file for the design spec:
 - Translate `pptxgenjs` calls into Google Slides API requests
 - Use `createShape`, `insertText`, `updateTextStyle`, `updateShapeProperties`
 - Inches to EMU: multiply by 914400
+- For outlines: use `"outline": {"propertyState": "NOT_RENDERED"}` to hide outlines (weight=0 throws an error)
 
 The `tlb-slides/SKILL.md` has the full brand design system (color palette, typography scale, layout rules, logo positions).
 
-### Step 5: Save to registry
+**Logo insertion:** Corporate Google Workspace blocks public file sharing, so the Slides API `createImage` with a Drive URL will fail. Workaround: insert a styled text placeholder (`"talabat"` in Poppins Bold 20pt, orange #FF5900, aligned right, top-right corner). The PM can manually replace it with the logo image from their Drive after the deck is created.
 
-After generating, save the presentation ID and slide mapping to the sync registry so future `/sync [updates]` can update slides in place.
+**Footer links:** Parse the Jira description for embedded URLs (PRD doc, Eppo experiment, working sheet) and add them as hyperlinked text in the footer bar using `updateTextStyle` with `link.url`.
+
+Move the presentation to the correct Drive folder using `update_drive_file` with `add_parents`.
+
+### Step 6: Save to registry
+
+After generating, save to the sync registry under `generated_decks`:
+```yaml
+generated_decks:
+  - type: experiment
+    initiative_key: "TLBVAL-16"
+    presentation_id: "abc123..."
+    folder_id: "folder456..."
+    last_updated: "2026-05-06"
+    slide_mapping:
+      - slide_id: "slide_001"
+        content: "hypothesis"
+      - slide_id: "slide_002"
+        content: "results"
+```
+
+This enables future `/sync [updates]` and `/sync artifacts` runs to update the deck in place instead of creating duplicates.
 
 ---
 ## Rules
