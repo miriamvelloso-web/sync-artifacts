@@ -206,35 +206,32 @@ The sync registry is a per-PM YAML config stored in Claude memory. Maps initiati
 
 ```yaml
 pm:
-  name: "Adrian Alvarez"
-  email: "adrian.alvarez@talabat.com"
-  jira_cloud_id: "deliveryhero.atlassian.net"
-  jira_project: "HOMESQUAD"
+  name: ""
+  email: ""
+  jira_project: ""
 
 okr_hierarchy:
   objective:
-    key: "TLBPT-317"
-    name: "O6. Establish a personalisation engine..."
+    key: ""
+    name: ""
   key_results:
-    - key: "TLBPT-319"
-      name: "O6.KR1. Increase component clicks/session..."
-      initiatives: ["HOMESQUAD-967"]
+    - key: ""
+      name: ""
+      initiatives: []
 
 jira:
   initiatives:
-    "Screen Ranker Home": { epic_key: "HOMESQUAD-967", status: "Experiment" }
-    "Coffee Tile Time-Based": { epic_key: "HOMESQUAD-992", status: "Experiment" }
-    "Perso Orchestrator MVP": { epic_key: "HOMESQUAD-1012", status: "In Progress" }
+    "Initiative Name": { epic_key: "PROJECT-123", status: "In Progress" }
 
 artifacts:
   - type: google_doc
     name: "Strategy Doc"
-    id: "abc123..."
+    id: "doc_id..."
     tabs:
       - tab_id: t.xxxxx
-        title: "SR MVP rollout"
-        initiative: "Screen Ranker Home"
-        epic_key: "HOMESQUAD-967"
+        title: "Tab Name"
+        initiative: "Initiative Name"
+        epic_key: "PROJECT-123"
 
 drive_folders:
   root: "folder_id"
@@ -243,20 +240,14 @@ drive_folders:
   lightspeed: "folder_id"
 
 generated_decks:
-  - presentation_id: "1abc..."
+  - presentation_id: "deck_id..."
     type: experiment
-    epic_key: "HOMESQUAD-967"
+    epic_key: "PROJECT-123"
     folder_id: "folder_id"
-    last_updated: "2026-05-06"
+    last_updated: "2026-01-01"
 
 channels: []
   # Slack channels, email routes with trigger/format/frequency rules
-
-context_sources:
-  HOMESQUAD-967:
-    slack_keywords: ["screen ranker", "SR MVP"]
-    drive_docs: []
-    gmail_keywords: ["screen ranker"]
 ```
 
 ---
