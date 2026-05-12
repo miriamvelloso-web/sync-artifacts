@@ -592,33 +592,96 @@
     </div>
   </div>
 
-  <!-- SLIDE 3: The Solution -->
+  <!-- SLIDE 3: The Brain -->
   <div class="slide bg-cream" data-slide="2">
-    <div class="slide-number">The solution</div>
+    <div class="slide-number">The brain</div>
     <div class="logo">talabat</div>
-    <h2>Write it <span class="accent">once</span>.<br>It goes everywhere.</h2>
-    <p class="subtitle" style="margin-bottom: 10px; font-size:15px;">Text, screenshot, PDF — /sync parses it and routes to every system.</p>
-    <div class="flow">
-      <div class="flow-step"><div class="flow-icon">✏️</div><div class="flow-title">Your update</div><div class="flow-label">Any format</div></div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-step highlight"><div class="flow-icon">⚡</div><div class="flow-title">/sync</div><div class="flow-label">Parse & route</div></div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-step"><div class="flow-icon">📋</div><div class="flow-title">Jira</div><div class="flow-label">Comments, transitions</div></div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-step"><div class="flow-icon">📊</div><div class="flow-title">Slides</div><div class="flow-label">Experiment, MPR</div></div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-step"><div class="flow-icon">💬</div><div class="flow-title">Slack</div><div class="flow-label">Channel posts</div></div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-step"><div class="flow-icon">📧</div><div class="flow-title">Email</div><div class="flow-label">Weekly updates</div></div>
+    <h2>First, /sync builds your <span class="accent">brain</span></h2>
+    <p class="subtitle" style="margin-bottom: 16px; font-size:15px;">One-time onboarding discovers everything about your project. Then every command taps into that knowledge.</p>
+    <div style="display:flex; gap:16px; max-width:900px; margin:0 auto;">
+      <!-- Left: what onboarding discovers -->
+      <div style="flex:1;">
+        <div style="background:white; border-radius:16px; padding:20px; border:2px solid var(--orange);">
+          <h3 style="color:var(--orange); font-size:14px; margin:0 0 14px; font-family:'JetBrains Mono',monospace;">Onboarding (2 min, once)</h3>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <div style="background:var(--cream); border-radius:8px; width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;">📋</div>
+              <div><div style="font-size:12px; font-weight:700;">Jira project</div><div style="font-size:10px; color:var(--gray);">Your board, issue types, assignees</div></div>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <div style="background:var(--cream); border-radius:8px; width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;">🎯</div>
+              <div><div style="font-size:12px; font-weight:700;">OKR hierarchy</div><div style="font-size:10px; color:var(--gray);">Objectives → KRs → Initiatives (auto-discovered)</div></div>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <div style="background:var(--cream); border-radius:8px; width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;">📄</div>
+              <div><div style="font-size:12px; font-weight:700;">Artifacts</div><div style="font-size:10px; color:var(--gray);">Strategy docs, slide decks, tabs auto-mapped</div></div>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <div style="background:var(--cream); border-radius:8px; width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;">💬</div>
+              <div><div style="font-size:12px; font-weight:700;">Channels</div><div style="font-size:10px; color:var(--gray);">Slack channels, email lists, routing rules</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Right: the registry brain -->
+      <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
+        <div style="background:var(--burgundy); border-radius:16px; padding:24px; color:white; text-align:center;">
+          <div style="font-size:36px; margin-bottom:8px;">🧠</div>
+          <h3 style="color:var(--lime); font-size:16px; margin:0 0 8px;">Sync Registry</h3>
+          <p style="font-size:11px; opacity:0.85; margin:0 0 16px;">A living map of your project — initiatives, OKRs, docs, channels. Grows as you work.</p>
+          <div style="display:flex; gap:6px; justify-content:center; flex-wrap:wrap;">
+            <span style="background:rgba(207,255,0,0.15); color:var(--lime); padding:3px 10px; border-radius:20px; font-size:10px; font-weight:600;">PM identity</span>
+            <span style="background:rgba(207,255,0,0.15); color:var(--lime); padding:3px 10px; border-radius:20px; font-size:10px; font-weight:600;">OKR tree</span>
+            <span style="background:rgba(207,255,0,0.15); color:var(--lime); padding:3px 10px; border-radius:20px; font-size:10px; font-weight:600;">Artifact map</span>
+            <span style="background:rgba(207,255,0,0.15); color:var(--lime); padding:3px 10px; border-radius:20px; font-size:10px; font-weight:600;">Channel routes</span>
+          </div>
+        </div>
+        <div style="text-align:center; margin-top:10px; font-size:11px; color:var(--gray);">Every command reads from this brain</div>
+      </div>
     </div>
   </div>
 
-  <!-- SLIDE 4: Artifact types overview -->
+  <!-- SLIDE 4: All Commands -->
   <div class="slide bg-white" data-slide="3">
+    <div class="slide-number">Commands</div>
+    <div class="logo">talabat</div>
+    <h2>One brain, <span class="accent">7 commands</span></h2>
+    <p class="subtitle" style="margin-bottom: 14px; font-size:14px;">All commands tap into the same registry — your Jira, OKRs, artifacts, and channels.</p>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; max-width:800px; margin:0 auto;">
+      <div class="card" style="margin:0; padding:14px 16px; border-left:4px solid var(--orange);">
+        <h3 style="color:var(--orange); font-size:13px; font-family:'JetBrains Mono',monospace; margin:0 0 4px;">/sync [update]</h3>
+        <p style="font-size:11px; margin:0;">Route any update to Jira + Slides + Slack in one shot. Text, screenshot, PDF — any format.</p>
+      </div>
+      <div class="card" style="margin:0; padding:14px 16px; border-left:4px solid var(--orange);">
+        <h3 style="color:var(--orange); font-size:13px; font-family:'JetBrains Mono',monospace; margin:0 0 4px;">/sync artifacts</h3>
+        <p style="font-size:11px; margin:0;">Generate branded decks from live data — Experiment, Lightspeed, or MPR (13 slides).</p>
+      </div>
+      <div class="card" style="margin:0; padding:14px 16px; border-left:4px solid var(--orange);">
+        <h3 style="color:var(--orange); font-size:13px; font-family:'JetBrains Mono',monospace; margin:0 0 4px;">/sync weekly</h3>
+        <p style="font-size:11px; margin:0;">Draft Toon's weekly update from Jira + Slack + Drive. CEO-scannable, no filler.</p>
+      </div>
+      <div class="card" style="margin:0; padding:14px 16px; border-left:4px solid var(--orange);">
+        <h3 style="color:var(--orange); font-size:13px; font-family:'JetBrains Mono',monospace; margin:0 0 4px;">/sync status</h3>
+        <p style="font-size:11px; margin:0;">View your full registry — initiatives, OKR tree, artifacts, channels, generated decks.</p>
+      </div>
+      <div class="card" style="margin:0; padding:14px 16px; border-left:4px solid #888;">
+        <h3 style="color:#555; font-size:13px; font-family:'JetBrains Mono',monospace; margin:0 0 4px;">/sync add [URL]</h3>
+        <p style="font-size:11px; margin:0;">Register a new destination — Google Doc, Slides, Slack channel, or email list.</p>
+      </div>
+      <div class="card" style="margin:0; padding:14px 16px; border-left:4px solid #888;">
+        <h3 style="color:#555; font-size:13px; font-family:'JetBrains Mono',monospace; margin:0 0 4px;">/sync remove · /sync test</h3>
+        <p style="font-size:11px; margin:0;">Remove a destination or send a test message to verify connectivity.</p>
+      </div>
+    </div>
+    <p style="font-size:11px; color:var(--gray); text-align:center; margin-top:12px;">Orange = daily use &nbsp;|&nbsp; Gray = setup & maintenance</p>
+  </div>
+
+  <!-- SLIDE 5: Artifact types detail -->
+  <div class="slide bg-cream" data-slide="4">
     <div class="slide-number">Artifact types</div>
     <div class="logo">talabat</div>
-    <h2><span class="accent">/sync artifacts</span></h2>
-    <p class="subtitle" style="margin-bottom: 10px;">Generate branded slide decks from live data. Pick a type, pick an initiative — the system does the rest.</p>
+    <h2><span class="accent">/sync artifacts</span> — 3 deck types</h2>
+    <p class="subtitle" style="margin-bottom: 10px;">Pick a type, pick an initiative — the brain pulls live data and builds branded slides.</p>
     <div class="cols">
       <div class="card" style="border-left: 4px solid var(--orange);"><h3>🧪 Experiment</h3><p>A/B test summary: hypothesis, setup, Eppo results, guardrails, recommendation. Auto-pulls metrics from Eppo and writes the exec summary.</p></div>
       <div class="card" style="border-left: 4px solid var(--orange);"><h3>🚀 Lightspeed</h3><p>Launch readiness: what shipped, impact metrics with lime highlights, next steps + product visuals.</p></div>
@@ -626,8 +689,8 @@
     </div>
   </div>
 
-  <!-- SLIDE 5: EXAMPLE — Experiment Slide -->
-  <div class="slide bg-cream" data-slide="4">
+  <!-- SLIDE 6: EXAMPLE — Experiment Slide -->
+  <div class="slide bg-cream" data-slide="5">
     <div class="slide-number">Example: Experiment Slide</div>
     <div class="logo">talabat</div>
     <h2><span class="accent">Experiment</span> slide — real output</h2>
@@ -697,8 +760,8 @@
     </div>
   </div>
 
-  <!-- SLIDE 6: EXAMPLE — Weekly Email (Toon) -->
-  <div class="slide bg-white" data-slide="5">
+  <!-- SLIDE 7: EXAMPLE — Weekly Email (Toon) -->
+  <div class="slide bg-white" data-slide="6">
     <div class="slide-number">Example: Weekly Email</div>
     <div class="logo">talabat</div>
     <h2><span class="accent">Weekly update</span> — real output</h2>
@@ -767,8 +830,8 @@
     </div>
   </div>
 
-  <!-- SLIDE 7: EXAMPLE — MPR Deck -->
-  <div class="slide bg-cream" data-slide="6">
+  <!-- SLIDE 8: EXAMPLE — MPR Deck -->
+  <div class="slide bg-cream" data-slide="7">
     <div class="slide-number">Example: MPR Deck</div>
     <div class="logo">talabat</div>
     <h2><span class="accent">MPR</span> — 13-slide deck</h2>
@@ -886,8 +949,8 @@
     </div>
   </div>
 
-  <!-- SLIDE 8: EXAMPLE — Jira + Slack -->
-  <div class="slide bg-white" data-slide="7">
+  <!-- SLIDE 9: EXAMPLE — Jira + Slack -->
+  <div class="slide bg-white" data-slide="8">
     <div class="slide-number">Example: Jira & Slack</div>
     <div class="logo">talabat</div>
     <h2><span class="accent">Jira comments</span> & <span class="accent">Slack posts</span></h2>
@@ -962,8 +1025,8 @@
     </div>
   </div>
 
-  <!-- SLIDE 9: Pipeline -->
-  <div class="slide bg-cream" data-slide="8">
+  <!-- SLIDE 10: Pipeline -->
+  <div class="slide bg-cream" data-slide="9">
     <div class="slide-number">How experiment slides work</div>
     <div class="logo">talabat</div>
     <h2>The <span class="accent">data pipeline</span></h2>
@@ -976,8 +1039,8 @@
     </div>
   </div>
 
-  <!-- SLIDE 10: Drive Architecture -->
-  <div class="slide bg-white" data-slide="9">
+  <!-- SLIDE 11: Drive Architecture -->
+  <div class="slide bg-white" data-slide="10">
     <div class="slide-number">Architecture</div>
     <div class="logo">talabat</div>
     <h2>Where everything <span class="accent">lives</span></h2>
@@ -1020,7 +1083,7 @@
   </div>
 
   <!-- SLIDE 11: Doc + Slides Creation Flow -->
-  <div class="slide bg-cream" data-slide="10">
+  <div class="slide bg-cream" data-slide="11">
     <div class="slide-number">Creation flow</div>
     <div class="logo">talabat</div>
     <h2>How artifacts get <span class="accent">built</span></h2>
@@ -1110,7 +1173,7 @@
   </div>
 
   <!-- SLIDE 12: Impact Numbers -->
-  <div class="slide bg-burgundy" data-slide="11">
+  <div class="slide bg-burgundy" data-slide="12">
     <div class="slide-number">Impact</div>
     <div class="logo">talabat</div>
     <div style="text-align:center;">
@@ -1151,7 +1214,7 @@
   </div>
 
   <!-- SLIDE 13: The 4 MCPs You Need -->
-  <div class="slide bg-dark" data-slide="12" style="align-items:center;">
+  <div class="slide bg-dark" data-slide="13" style="align-items:center;">
     <div class="slide-number">Setup</div>
     <div class="logo">talabat</div>
     <h2 style="text-align:center; color:var(--cream);">The <span style="color:var(--orange);">4 MCPs</span> you need</h2>
@@ -1201,7 +1264,7 @@
   </div>
 
   <!-- SLIDE 14: Terminal Install -->
-  <div class="slide bg-dark" data-slide="13" style="align-items:center;">
+  <div class="slide bg-dark" data-slide="14" style="align-items:center;">
     <div class="slide-number">Terminal</div>
     <div class="logo">talabat</div>
     <h2 style="text-align:center; color:var(--cream); margin-bottom:30px;">Copy & paste in your <span style="color:var(--lime-bright);">terminal</span></h2>
@@ -1250,7 +1313,7 @@
   </div>
 
   <!-- SLIDE 15: Getting Started + Commands -->
-  <div class="slide bg-white" data-slide="14">
+  <div class="slide bg-white" data-slide="15">
     <div class="slide-number">Getting started</div>
     <div class="logo">talabat</div>
     <h2>Ready in <span class="accent">2 minutes</span></h2>
@@ -1288,7 +1351,7 @@
   </div>
 
   <!-- SLIDE 16: CTA -->
-  <div class="slide bg-orange" data-slide="15">
+  <div class="slide bg-orange" data-slide="16">
     <div class="logo">talabat</div>
     <div style="text-align:center;">
       <h1 style="font-size:72px; margin-bottom:24px;">Stop copy-pasting.</h1>
@@ -1311,7 +1374,7 @@
   <button id="next" onclick="navigate(1)">→</button>
 </div>
 <div class="progress" id="progress"></div>
-<div class="slide-counter"><span id="currentSlide">1</span> / <span id="totalSlides">16</span></div>
+<div class="slide-counter"><span id="currentSlide">1</span> / <span id="totalSlides">17</span></div>
 <div class="kbd-hint">← → to navigate</div>
 
 <script>
