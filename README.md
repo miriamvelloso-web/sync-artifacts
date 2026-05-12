@@ -12,8 +12,6 @@ A Claude Code skill system for Product Managers at Talabat. Syncs initiative upd
 │   ├── sync/
 │   │   ├── SKILL.md             # /sync — universal PM initiative router
 │   │   └── jira-skill-docs.md   # /jira — Jira board management reference
-│   ├── tlb-sync/
-│   │   └── SKILL.md             # /tlb-sync — extended sync (artifacts, weekly, channels)
 │   └── tlb-slides/
 │       ├── SKILL.md             # Talabat slide design system (brand guide)
 │       ├── assets/
