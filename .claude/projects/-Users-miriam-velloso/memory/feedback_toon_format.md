@@ -1,8 +1,7 @@
 ---
 name: Toon weekly update — official format
-description: Toon's mandated format for P&T weekly updates — must include squad name, PM, OKR hierarchy with KR progress/status, then 3 sections
+description: Toon's mandated format for P&T weekly updates — exact template with strict rules, no inflation
 type: feedback
-originSessionId: a8d9e505-2146-4839-9338-642e23db83e4
 ---
 Toon specified the exact format for weekly P&T updates (sent as email, subject line: `[P&T update] [Week NN] - Value - Home & Personalization`).
 
@@ -13,24 +12,38 @@ Toon specified the exact format for weekly P&T updates (sent as email, subject l
 - PM name
 - Full OKR hierarchy: Objective → each KR with progress % and status badge (On Track / At Risk / Blocked)
 - Each initiative listed under its KR with Jira + Eppo links
+- KR progress % and status come from Jira KR tickets, not estimated
 
 **Section 1: What shipped / progressed this week**
 Per initiative (card format, color-coded by status):
-- Initiative name + links (Jira, Eppo)
-- KR tag (which KR it maps to)
-- Status: 3 sentences on current state — prototype/live, shipped to whom, where
-- Demo/prototype: Image / GIF / Video
-- Progress: % complete (matching KR table above)
-- Rationale: 1-2 sentences max
-- Expected Impact: 1-2 sentences, include data where available
+```
+<initiative name + URL>
+Status: <3 sentences on current state — prototype/live, shipped to whom, where>
+Demo/prototype: <Image / GIF / Video>
+Progress: <% complete>
+Rationale: <1-2 sentences max>
+Expected Impact: <1-2 sentences; include data where available>
+```
+That's it. No sub-sections, no "This week:" blocks, no embedded tables. Keep it flat and scannable.
 
 **Section 2: Focus for next week**
-- List of initiatives with brief description and why we're doing it
-- One line per initiative
+```
+Initiative name: <brief description and why we're doing it>
+Initiative name: <brief description and why we're doing it>
+```
+One line per initiative. No bullets within bullets.
 
 **Section 3: Blockers and support needed**
-- Blocker: 2-3 sentences max
-- Decision/support needed: What do you need, and from whom?
+```
+Blocker: <2-3 sentences max>
+Decision/support needed: <What do you need, and from whom?>
+```
+
+**Sign-off:**
+```
+Regards.
+<PM name>
+```
 
 ## Branded HTML styling
 - Orange header bar (#FF5900) with white text
@@ -44,10 +57,10 @@ Per initiative (card format, color-coded by status):
 ## Rules (Toon's words)
 1. Keep it short and on point
 2. Include only updates that actually matter — quality over quantity, don't add things to make it look like we did more
-3. No inflated text — simple formatting, easy to scan
+3. No inflated text — simple formatting, easy to scan (do you really need that bullet point?)
 4. Add visuals where possible
 5. Sanity check before sending — read it as Toon would. If you were CEO, would anything feel vague or unnecessary? If so, cut it
 
-**Why:** Toon wants substance, not volume. Every line must earn its place. Visuals > text. CEO-level scan test. The OKR framing gives instant context on where things stand.
+**Why:** Toon wants substance, not volume. Every line must earn its place. Visuals > text. CEO-level scan test. The format is intentionally flat — no nested content, no sub-sections inside cards, no data tables. Just the fields listed above, filled concisely.
 
-**How to apply:** When drafting Toon weekly updates (/sync weekly), use this exact structure: squad + PM header, OKR table with KR progress/status, then 3-section body with branded HTML cards. Always include all tracked initiatives under their KRs — even if experiment is just monitoring, include it with current state. Strip anything a CEO would find vague or filler.
+**How to apply:** When drafting Toon weekly updates (/sync weekly), follow the exact template: squad + PM header, OKR table with KR progress/status from Jira, then 3-section body with flat cards. Weave experiment data into the Status and Expected Impact sentences — don't create separate tables. Strip anything a CEO would find vague or filler. End with "Regards. <PM name>".

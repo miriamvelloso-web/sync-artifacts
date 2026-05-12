@@ -26,6 +26,7 @@
 - [MD email enrichment](project_md_email_enrichment.md) — Pending: enrich MD email brief with PRD context + use Eppo cache for named metrics
 - [MD metrics style](feedback_md_metrics_style.md) — Name actual metrics, include guardrails, write like a data analyst
 - [Sync Registry — Adrian](sync_registry_adrian.md) — /sync config for Adrian Alvarez (HOMESQUAD): 3 epics, strategy doc mapped
+- [Sync Registry — Adrian TEST](sync_registry_adrian_test.md) — TEST: Adrian Alvarez (TLBVAL/Personalization): 5 initiatives, strategy doc, no channels
 - [Experiment slide WIP](project_experiment_slide_wip.md) — Template workflow, 2 slides filled (SR + Flash Sale KW), Eppo MCP added pending restart
 - [Eppo MCP gateway](reference_eppo_mcp.md) — HTTP gateway at talabatai.dhhmena.com/mcp/gateway/eppo/mcp, added to local config
 - [Business Case Helper](project_business_case_helper.md) — /business-case skill with impact calculators, generates Google Doc from template
@@ -39,3 +40,4 @@
 - [MPR workflow](feedback_mpr_workflow.md) — Duplicate master template, always use onboarded PM, no prompts
 - [Sync artifacts = Slides only](feedback_sync_add_artifacts.md) — /sync artifacts is Google Slides only; dynamic menu with fixed types + registered decks + "New deck"
 - [Sync artifacts folders & create/update](feedback_sync_artifacts_folder_structure.md) — Drive folders by quarter/PM/bet, show live initiatives, create if new or update if exists
+- [KR progress from Jira](feedback_kr_progress_from_jira.md) — Pull KR progress % from Jira KR tickets, never estimate

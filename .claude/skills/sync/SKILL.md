@@ -1,9 +1,12 @@
 ---
-name: tlb-sync
-description: '"Sync initiative updates to Jira and artifact SoTs (Google Docs, Slides,
-  etc.) in one pass. Usage: /sync [updates as text, images, PDFs, or any format]"'
+name: sync
+description: >-
+  Universal PM tool: route initiative updates to Jira, Google Docs, Google Slides,
+  Slack, and email. Also generates branded slide decks and drafts weekly updates.
+  Use when the user says "/sync", "sync updates", "push updates", "sync initiatives",
+  "generate slides", "weekly update", or "draft updates".
 metadata:
-  version: 0.1.0
+  version: 0.3.0
   team: product
   category: product
 ---
@@ -447,7 +450,7 @@ Flag any action items that need follow-up.
 
 - **`/sync [updates]`** — Main flow. Parse updates, route to all destinations.
 - **`/sync artifacts`** — Generate branded slide decks (Experiments, Lightspeed, MPR) from live data. See **`/sync artifacts` Mode** below.
-- **`/sync weekly`** — Draft weekly update in Toon's 3-section format. See `/toon` command.
+- **`/sync weekly`** — Draft weekly update in Toon's 3-section format. See **`/sync weekly` Mode** below.
 - **`/sync add [URL | slack | email]`** — Register a new destination. Accepts artifact URLs or channel types.
 - **`/sync status`** — Show the current sync registry: all destinations, mapped initiatives, routing rules.
 - **`/sync remove [destination name]`** — Remove a destination from the registry.
@@ -699,21 +702,320 @@ generated_decks:
 This enables future `/sync [updates]` and `/sync artifacts` runs to update the deck in place instead of creating duplicates.
 
 ---
+
+## `/sync weekly` Mode
+
+Scans the PM's Jira board for recent activity, gathers context from Slack, Drive, and Gmail, and drafts a CEO-scannable weekly update in Toon's official 3-section format.
+
+**Output:** Email draft with subject `[P&T update] [Week {NN}] - Value - Home & Personalization`
+
+### Step 1: Scan the board
+
+Fetch all active (non-Done) initiatives:
+
+```
+mcp__atlassian__searchJiraIssuesUsingJql
+  cloudId: {PM's cloud ID}
+  jql: "project = {PROJECT_KEY} AND status != Done ORDER BY key ASC"
+  fields: ["summary", "status", "priority", "assignee", "updated", "description", "labels", "issuetype"]
+  maxResults: 50
+  responseContentFormat: markdown
+```
+
+Show the PM what was found. Identify which initiatives were updated in the **last 7 days**.
+
+### Step 2: Gather context per initiative
+
+For EACH initiative updated in the last 7 days, run ALL of these **in parallel**:
+
+#### 2a. Jira details + child issues
+
+```
+mcp__atlassian__getJiraIssue
+  cloudId: {PM's cloud ID}
+  issueIdOrKey: {ISSUE_KEY}
+  expand: "changelog"
+  responseContentFormat: markdown
+```
+
+```
+mcp__atlassian__searchJiraIssuesUsingJql
+  jql: "parent = {ISSUE_KEY} AND updated >= -7d ORDER BY updated DESC"
+  fields: ["summary", "status", "assignee", "updated"]
+```
+
+#### 2b. Slack
+
+If registry has `context_sources.{EPIC_KEY}.slack_channels`, read history for those channels:
+
+```
+mcp__Slack__read_channel_history
+  channel_id: {channel_id}
+  limit: 50
+```
+
+Also do keyword searches using initiative name + any stored keywords:
+
+```
+mcp__Slack__search_messages
+  query: "{initiative keywords}"
+  limit: 5
+```
+
+#### 2c. Google Drive + Visuals
+
+If registry has `context_sources.{EPIC_KEY}.drive_docs`, check those docs for recent changes.
+
+Also search broadly:
+```
+mcp__google-workspace__search_drive_files
+  query: "{initiative keywords}"
+  user_google_email: {PM's email}
+```
+
+**Search for visuals** — PRDs, mockups, screenshots in linked Google Docs:
+```
+mcp__google-workspace__get_doc_as_markdown
+  document_id: {linked PRD doc ID}
+  user_google_email: {PM's email}
+```
+
+Look for embedded images, Figma links, demo GIFs — these are critical for the update.
+
+#### 2d. Gmail
+
+Search the PM's inbox for threads from the past 7 days:
+
+```
+mcp__google-workspace__search_gmail_messages
+  user_google_email: {PM's email}
+  query: "{keywords OR contact name} newer_than:7d"
+  page_size: 5
+```
+
+If registry has `context_sources.{EPIC_KEY}.gmail_contacts`, search for those contacts too.
+
+### Step 3: Filter — only what genuinely shipped/progressed
+
+**CRITICAL GATE:** Before drafting, apply the CEO scan test:
+- Did this initiative actually ship or progress this week?
+- Is there something concrete to show (demo, screenshot, metric)?
+- Would Toon find this update vague or filler? If yes → cut it.
+
+Only initiatives that pass this filter go into Section 1. Everything else goes to Section 2 (next week focus) or gets dropped entirely.
+
+**No repetition:** Compare against prior week's output. Strip anything that appeared last week.
+
+### Step 4: Draft the update — Toon's official format
+
+```
+Subject: [P&T update] [Week {NN}] - Value - Home & Personalization
+
+
+1. What shipped / progressed this week:
+
+{Initiative Name}
+{Jira URL: https://{cloud_host}/browse/{EPIC_KEY}}
+Status: {3 sentences on current state — prototype/live, shipped to whom, where}
+Demo/prototype: {Image / GIF / Video link or placeholder}
+Progress: {X% complete}
+Rationale: {1-2 sentences max}
+Expected Impact: {1-2 sentences; include data where available}
+
+{Repeat ONLY for initiatives that genuinely shipped/progressed}
+
+
+2. Focus for next week:
+{Initiative name}: {brief description and why we're doing it}
+{Initiative name}: {brief description and why we're doing it}
+{Initiative name}: {brief description and why we're doing it}
+
+3. Blockers and support needed
+Blocker: {2-3 sentences max}
+Decision/support needed: {What do you need, and from whom?}
+
+Regards,
+{PM name}
+```
+
+### Step 5: Present for review
+
+Show the complete email draft to the PM.
+
+Ask: **"Want me to create this as a Gmail draft, send it, or edit anything?"**
+
+### Step 6: Act on PM's choice
+
+- **Gmail draft**: `mcp__google-workspace__draft_gmail_message` with the update as body
+- **Send directly**: `mcp__google-workspace__send_gmail_message` — ask for recipients
+- **Export as MD**: Save to `~/Desktop/toon-update-week-{NN}-{YYYY-MM-DD}.md`
+- **Post to Jira**: Also post per-initiative summaries as Jira comments if requested
+
+```
+mcp__atlassian__addCommentToJiraIssue
+  cloudId: {PM's cloud ID}
+  issueIdOrKey: {ISSUE_KEY}
+  commentBody: {draft text}
+  contentFormat: markdown
+```
+
+### Step 7: Push to other destinations (optional)
+
+After the email is created, offer to also update other registered destinations:
+- If a Google Doc has mapped tabs for these initiatives → update inline fields + append status log
+- If a `generated_deck` exists for any updated initiatives → update the corresponding slides
+- If channels are registered with `trigger: all` → send Slack notifications
+- Follow the same routing logic as `/sync [updates]` mode
+
+### Toon format rules (mandatory)
+
+1. **Keep it short and on point** — no filler
+2. **Only updates that actually matter** — quality over quantity, don't pad
+3. **No inflated text** — simple formatting, easy to scan
+4. **Add visuals where possible** — screenshots, GIFs, demos
+5. **CEO sanity check** — read as Toon would. If anything feels vague or unnecessary, cut it
+6. **No repetition from last week** — only what genuinely moved
+7. **No activity = no mention** — don't list "nothing happened" initiatives
+
+---
+
+## Sync Registry Structure (full reference)
+
+```yaml
+pm:
+  name: ""
+  email: ""
+  jira_cloud_id: ""
+  jira_project: ""
+
+jira:
+  initiatives: {}        # "Initiative Name" → "EPIC-KEY"
+
+okr_hierarchy: []        # auto-discovered by walking UP parent chain from initiatives
+
+artifacts: []
+# - type: google_doc
+#   name: "Strategy Doc"
+#   id: "doc_id"
+#   url: "https://..."
+#   write_access: true
+#   tabs:
+#     - tab_id: "t.xxxxx"
+#       title: "Tab Name"
+#       initiative: "Initiative Name"
+#
+# - type: google_slides
+#   name: "Exec Deck"
+#   id: "slides_id"
+#   update_mode: append_on_top | update_existing
+#   slides:
+#     - slide_id: "p1"
+#       initiative: "Initiative Name"
+
+generated_decks: []
+# - type: experiment | lightspeed | mpr
+#   initiative_key: "TLBVAL-16"
+#   presentation_id: "1abc..."
+#   folder_id: "folder456..."
+#   last_updated: "2026-05-06"
+#   slide_mapping:
+#     - slide_id: "slide_001"
+#       content: "hypothesis"
+
+channels: []
+# - type: slack
+#   name: "Team Updates"
+#   routes:
+#     - channel_id: "C0XXXX"
+#       channel_name: "#my-channel"
+#       trigger: all | initiatives | significant | milestone
+#       initiatives: ["KEY-1"]   # only if trigger = initiatives
+#       format: detailed | summary | executive | digest
+#
+# - type: email
+#   name: "Stakeholder Updates"
+#   routes:
+#     - recipients: ["name@company.com"]
+#       trigger: significant
+#       format: digest
+#       frequency: immediate | daily_digest | weekly_digest
+
+context_sources: {}
+# {EPIC_KEY}:
+#   slack_channels:
+#     - id: "C0XXXX"
+#       name: "#channel-name"
+#   slack_keywords: ["keyword1", "keyword2"]
+#   drive_docs:
+#     - id: "doc_id"
+#       name: "Doc Name"
+#   gmail_contacts: ["email@company.com"]
+#   gmail_keywords: ["keyword"]
+```
+
+---
+
+## Talabat Brand Guidelines (for slides)
+
+**Primary palette:**
+- **Orange** `#FF5900` — headers, accent bars, CTAs
+- **Burgundy** `#411517` — dark backgrounds, section dividers
+- **Cream** `#F4EDE3` / `#FFF5EB` — slide backgrounds, cards
+- **Lime** `#CFFF00` — highlights, metric callouts, positive indicators
+
+**Status colors:**
+- On Track: `#2E7D32` (green)
+- At Risk: `#F57F17` (amber)
+- Blocked: `#E60000` (red)
+- Shipped: `#2E7D32` (green)
+- In Progress: `#FF5900` (orange)
+- In Experiment: `#F57F17` (amber)
+- Planned: `#595959` (gray)
+
+**Typography:**
+- **Poppins Bold** — slide titles, headers
+- **Poppins SemiBold** — section headers, labels
+- **DM Sans** — body text, bullets
+- **JetBrains Mono** — metric values, data callouts
+
+**Layout rules:**
+- Clean, minimal — max 5 bullets per slide
+- Logo: top-right corner (text placeholder "talabat" in Poppins Bold 20pt orange if image insert fails)
+- Inches to EMU: multiply by 914400
+- For outlines: use `"outline": {"propertyState": "NOT_RENDERED"}` to hide (weight=0 throws error)
+
+Full design system with layout specs, reference files, and examples: see `tlb-slides/SKILL.md`.
+
+---
 ## Rules
 
-1. **Inline first, log second.** Always edit canonical fields (tables, summary rows, key metrics) before appending status sections. The canonical record IS the source of truth — a stale field with a correct log is a bug.
+1. **PM-agnostic.** Never hardcode a project key, cloud ID, email, or channel. Everything comes from the sync registry.
 
-2. **Index discipline.** When making multiple edits in the same document section, process from highest index to lowest. This prevents index shifts from invalidating subsequent operations.
+2. **Never post to Jira without explicit approval.** Always show drafts first.
 
-3. **Preserve formatting.** When replacing text in formatted cells (bold, italic, colored), re-apply the text style after insertion.
+3. **Never write to artifacts without showing the routing plan.** Let the PM confirm before pushing.
 
-4. **All destinations or explicit failure.** Every registered destination for an affected initiative must be updated. If one fails, report it explicitly — don't silently skip.
+4. **Inline first, log second.** Always edit canonical fields (tables, summary rows, key metrics) before appending status sections. The canonical record IS the source of truth — a stale field with a correct log is a bug.
 
-5. **New tickets from action items.** If an update mentions an action item with an owner, create a Jira task automatically (with parent epic, assignee, priority).
+5. **Index discipline.** When making multiple edits in the same document section, process from highest index to lowest. This prevents index shifts from invalidating subsequent operations.
 
-6. **Artifact-type-aware operations.** Each artifact type has its own read/write patterns. Never apply Google Doc edit logic to Slides or vice versa. Use the correct adapter.
+6. **Preserve formatting.** When replacing text in formatted cells (bold, italic, colored), re-apply the text style after insertion.
 
-7. **Registry is the source of mapping truth.** All initiative-to-destination mappings live in the sync registry memory. If the user says "also sync to this new doc," update the registry — don't hardcode.
+7. **All destinations or explicit failure.** Every registered destination for an affected initiative must be updated. If one fails, report it explicitly — don't silently skip.
+
+8. **New tickets from action items.** If an update mentions an action item with an owner, create a Jira task automatically (with parent epic, assignee, priority).
+
+9. **Artifact-type-aware operations.** Each artifact type has its own read/write patterns. Never apply Google Doc edit logic to Slides or vice versa. Use the correct adapter.
+
+10. **Registry is the source of mapping truth.** All initiative-to-destination mappings live in the sync registry memory. If the user says "also sync to this new doc," update the registry — don't hardcode.
+
+11. **Skip empty sections.** If Drive/Slack/Gmail finds nothing for an initiative, skip that section in the draft — don't include "No results found."
+
+12. **Maximize parallel calls.** Search Slack, Drive, Gmail simultaneously per initiative. Fetch child issues in parallel with parent details.
+
+13. **Always show the Jira tree first** when generating slides — let the PM pick what goes in the deck.
+
+14. **Always show the slide outline** before generating — slides are hard to restructure after creation.
 
 ---
 ## API Patterns
