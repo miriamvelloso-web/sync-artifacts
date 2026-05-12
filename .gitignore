@@ -1,0 +1,5 @@
+# Only track SKILL.md, README.md, and .gitignore
+*
+!SKILL.md
+!README.md
+!.gitignore
